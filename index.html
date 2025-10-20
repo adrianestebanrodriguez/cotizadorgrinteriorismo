@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generador de Propuestas GR Interiorismo</title>
+    <!-- Carga de Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+    <style>
+        /* Estilos generales */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8;
+            background-image: linear-gradient(135deg, #f0f4f8 0%, #e2eaf2 100%);
+            min-height: 100vh;
+        }
+
+        /* CONFIGURACIÓN CRÍTICA DE VISIBILIDAD PARA LA IMPRESIÓN */
+        
+        /* 1. Por defecto, el contenedor de salida (PDF) se mantiene oculto. */
+        #proposal-output {
+            display: none; 
+            visibility: hidden;
+            max-width: none !important; /* Aseguramos que ocupe todo el ancho posible */
+            width: 100% !important;
+        }
+
+        /* 2. Reglas de impresión: Ocultar el formulario y mostrar la propuesta */
+        @media print {
+            /* OCULTACIÓN EXTREMA DEL FORMULARIO */
+            #app-container {
+                display: none !important; 
+                visibility: hidden !important; 
+                height: 0 !important;
+                overflow: hidden !important;
+                position: absolute !important;
+                left: -9999px !important; /* Mover fuera del área visible */
+            }
+            
+            /* MOSTRAR Y FORMATERAR LA PROPUESTA */
+            #proposal-output {
+                display: block !important; 
+                visibility: visible !important; 
+                margin: 0 !important;
+                padding: 1.5cm !important; /* Añadir un padding para simular márgenes de página */
+                box-shadow: none !important;
+                max-width: none !important;
+                width: 100% !important;
+                min-height: 98vh; /* Garantizar que ocupe la página */
+                color: #000 !important;
+                font-size: 11pt !important;
+                background-color: white !important;
+            }
+            
+            /* Estilos de impresión para elementos internos */
+            body { 
+                padding: 0 !important; 
+                margin: 0 !important; 
+                background-color: white !important;
+            }
+            #proposal-output h2, #proposal-output h3 {
+                color: #172a3a !important; 
+                border-bottom: 2px solid #548c96 !important;
+                padding-bottom: 4px;
+                margin-top: 1.5rem;
+            }
+            #proposal-output .text-slate-600, #proposal-output .text-slate-700 {
+                color: #333 !important;
+            }
+            #proposal-output table {
+                border-collapse: collapse;
+                width: 100%;
+            }
+            #proposal-output th, #proposal-output td {
+                border: 1px solid #ccc; 
+            }
+            #proposal-output .border-x-0 {
+                 border-left: none !important;
+                 border-right: none !important;
+            }
+        }
+    </style>
+</head>
+<body class="p-4 sm:p-8">
+
+    <!-- CONTENEDOR PRINCIPAL DEL FORMULARIO -->
+    <div id="app-container" class="max-w-6xl mx-auto bg-white rounded-2xl shadow-[0_20px_50px_rgba(8,_112,_184,_0.1)] overflow-hidden backdrop-blur-sm bg-white/90 border border-gray-100">
+        
+        <!-- Encabezado de la Aplicación -->
+        <header class="bg-gradient-to-r from-[#172a3a] to-[#2a4858] text-white p-8 rounded-t-2xl relative overflow-hidden">
+            <div class="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width=\"60\" height=\"60\" viewBox=\"0 0 60 60\" xmlns=\"http://www.w3.org/2000/svg\"%3E%3Cg fill=\"none\" fill-rule=\"evenodd\"%3E%3Cg fill=\"%23ffffff\" fill-opacity=\"0.05\"%3E%3Cpath d=\"M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] opacity-30"></div>
+            <div class="relative flex items-center gap-6">
+                <img src="logo.png" alt="Logo GR Interiorismo" class="h-16 w-16 rounded-xl shadow-lg border-2 border-white/40 bg-white/60 object-contain mr-2">
+                <div>
+                    <h1 class="text-4xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-100">GR Interiorismo</h1>
+                    <p class="text-xl mt-2 text-gray-100">Generador de Propuestas de Servicios de Interiorismo Personalizado</p>
+                </div>
+            </div>
+        </header>
+
+        <!-- Formulario de Entrada (Input) -->
+        <form id="proposal-form" class="p-6 space-y-8">
+
+            <!-- SECCIÓN 1: DATOS DEL CLIENTE -->
+            <div class="border-b pb-6 border-slate-200">
+                <h2 class="text-2xl font-semibold text-[#548c96] flex items-center gap-3">
+                    <span class="bg-[#548c96]/10 text-[#548c96] w-8 h-8 rounded-lg flex items-center justify-center text-lg">1</span>
+                    <span>Datos del Cliente</span>
+                </h2>
+                <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="relative group">
+                        <label for="client-name" class="block text-sm font-medium text-slate-700 mb-1">Nombre completo</label>
+                        <input type="text" id="client-name" 
+                            class="block w-full rounded-lg bg-gray-50 border-gray-200 shadow-sm p-3 
+                            transition-all duration-200 ease-in-out
+                            focus:bg-white focus:ring-2 focus:ring-[#548c96] focus:ring-offset-2 focus:border-[#548c96] 
+                            hover:border-[#548c96] group-hover:border-[#548c96]" 
+                            placeholder="Ej: Laura Pérez Rodríguez">
+                    </div>
+                    <div class="relative group">
+                        <label for="client-email" class="block text-sm font-medium text-slate-700 mb-1">Correo electrónico</label>
+                        <input type="email" id="client-email" 
+                            class="block w-full rounded-lg bg-gray-50 border-gray-200 shadow-sm p-3 
+                            transition-all duration-200 ease-in-out
+                            focus:bg-white focus:ring-2 focus:ring-[#548c96] focus:ring-offset-2 focus:border-[#548c96]
+                            hover:border-[#548c96] group-hover:border-[#548c96]" 
+                            placeholder="ejemplo@cliente.com">
+                    </div>
+                    <div class="relative group">
+                        <label for="client-phone" class="block text-sm font-medium text-slate-700 mb-1">Teléfono de contacto</label>
+                        <input type="tel" id="client-phone" 
+                            class="block w-full rounded-lg bg-gray-50 border-gray-200 shadow-sm p-3 
+                            transition-all duration-200 ease-in-out
+                            focus:bg-white focus:ring-2 focus:ring-[#548c96] focus:ring-offset-2 focus:border-[#548c96]
+                            hover:border-[#548c96] group-hover:border-[#548c96]" 
+                            placeholder="+34 6XX XXX XXX">
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECCIÓN 2: INFORMACIÓN GENERAL DEL PROYECTO -->
+            <div class="border-b pb-6 border-slate-200">
+                <h2 class="text-2xl font-semibold text-[#548c96]">2. Información General del Proyecto</h2>
+                <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div>
+                        <label for="project-title" class="block text-sm font-medium text-slate-700">Título del Proyecto</label>
+                        <input type="text" id="project-title" class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-[#548c96] focus:ring-[#548c96] p-3 border-2" placeholder="Ej: Reforma Integral Vivienda C/Mayor">
+                    </div>
+                    <div>
+                        <label for="proposal-date" class="block text-sm font-medium text-slate-700">Fecha de emisión de la Propuesta</label>
+                        <input type="date" id="proposal-date" class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-[#548c96] focus:ring-[#548c96] p-3 border-2">
+                    </div>
+                    <div>
+                        <label for="project-location" class="block text-sm font-medium text-slate-700">Dirección o Ubicación (Referencia)</label>
+                        <input type="text" id="project-location" class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-[#548c96] focus:ring-[#548c96] p-3 border-2" placeholder="Ej: Las Palmas de Gran Canaria">
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECCIÓN 3 & 4: DESCRIPCIÓN Y ESTILO -->
+            <div class="border-b pb-6 border-slate-200 grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div>
+                    <h2 class="text-2xl font-semibold text-[#548c96]">3. Descripción del Proyecto (Objetivos y Alcance)</h2>
+                    <textarea id="project-scope" rows="5" class="mt-4 block w-full rounded-lg border-slate-300 shadow-sm focus:border-[#548c96] focus:ring-[#548c96] p-3 border-2" placeholder="Describa el propósito principal, las necesidades funcionales y los límites de la intervención..."></textarea>
+                </div>
+                <div>
+                    <h2 class="text-2xl font-semibold text-[#548c96]">4. Estilo y Ambiente Deseado</h2>
+                    <label for="intervention-areas" class="block text-sm font-medium text-slate-700 mt-4">Áreas o Estancias a Intervenir</label>
+                    <textarea id="intervention-areas" rows="4" class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-[#548c96] focus:ring-[#548c96] p-3 border-2" placeholder="Ej: Salón, Cocina, Baño Principal, Dormitorio. Estilo: Nórdico moderno, Industrial con toques cálidos..."></textarea>
+                </div>
+            </div>
+
+            <!-- SECCIÓN 5: ESPECIFICACIONES TÉCNICAS (USO DE TEXT AREAS PARA DETALLE) -->
+            <div class="border-b pb-6 border-slate-200">
+                <h2 class="text-2xl font-semibold text-[#548c96]">5. Especificaciones Técnicas Detalladas</h2>
+                <div class="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div>
+                        <label for="tech-materials" class="block text-sm font-medium text-slate-700">Superficies y Materiales (Revestimientos, Pavimentos, Pintura)</label>
+                        <textarea id="tech-materials" rows="4" class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-[#548c96] focus:ring-[#548c96] p-3 border-2" placeholder="Ej: Parquet laminado AC5, Porcelánico Marazzi 60x60 en baños, pintura lavable en tono arena..."></textarea>
+                    </div>
+                    <div>
+                        <label for="tech-furniture" class="block text-sm font-medium text-slate-700">Mobiliario a Diseñar y/o Suministrar (Dimensiones, Acabados)</label>
+                        <textarea id="tech-furniture" rows="4" class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-[#548c96] focus:ring-[#548c96] p-3 border-2" placeholder="Ej: Mueble de TV suspendido a medida (250x45x30 cm), armario empotrado lacado..."></textarea>
+                    </div>
+                    <div>
+                        <label for="tech-lighting" class="block text-sm font-medium text-slate-700">Iluminación y Elementos Eléctricos</label>
+                        <textarea id="tech-lighting" rows="4" class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-[#548c96] focus:ring-[#548c96] p-3 border-2" placeholder="Ej: Focos LED empotrados 3000K, tiras LED en foseados, mecanismos Simon 82..."></textarea>
+                    </div>
+                    <div>
+                        <label for="tech-installations" class="block text-sm font-medium text-slate-700">Climatización, Fontanería y Otras Instalaciones</label>
+                        <textarea id="tech-installations" rows="4" class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-[#548c96] focus:ring-[#548c96] p-3 border-2" placeholder="Ej: Preinstalación de A/A por conductos, grifería monomando Roca, cambio de tuberías de cobre..."></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECCIÓN 6: ALCANCE DE TRABAJOS (COMBOBOX) -->
+            <div class="border-b pb-6 border-slate-200">
+                <h2 class="text-2xl font-semibold text-[#548c96]">6. Alcance de Trabajos (Servicios Contratados)</h2>
+                <label for="work-scope" class="block text-sm font-medium text-slate-700 mt-4">Seleccione los servicios a incluir en esta propuesta (mantenga Ctrl/Cmd para selección múltiple)</label>
+                <select multiple id="work-scope" size="5" class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-[#548c96] focus:ring-[#548c96] p-3 border-2 h-36">
+                    <option value="Levantamiento de Planos y Toma de Medidas" selected>Levantamiento de Planos y Toma de Medidas</option>
+                    <option value="Distribución de Espacios y Propuesta de Layout" selected>Distribución de Espacios y Propuesta de Layout</option>
+                    <option value="Renderizados 3D fotorrealistas y/o Moodboards" selected>Renderizados 3D fotorrealistas y/o Moodboards</option>
+                    <option value="Elaboración de Planos Técnicos y de Detalle" selected>Elaboración de Planos Técnicos y de Detalle</option>
+                    <option value="Gestión de Permisos y Licencias Municipales (si aplica)">Gestión de Permisos y Licencias Municipales (si aplica)</option>
+                    <option value="Coordinación de Oficios, Proveedores y Control de Calidad en Obra">Coordinación de Oficios, Proveedores y Control de Calidad en Obra</option>
+                    <option value="Selección y Gestión de Compra de Mobiliario y Equipamiento">Selección y Gestión de Compra de Mobiliario y Equipamiento</option>
+                </select>
+            </div>
+
+            <!-- SECCIÓN 7 & 8: FASES Y DURACIÓN -->
+            <div class="border-b pb-6 border-slate-200 grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div>
+                    <h2 class="text-2xl font-semibold text-[#548c96]">7. Fases del Proyecto y Cronograma de Ejecución</h2>
+                    <label for="project-timeline" class="block text-sm font-medium text-slate-700 mt-4">Actividades a Realizar con Días Estimados</label>
+                    <textarea id="project-timeline" rows="8" class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-[#548c96] focus:ring-[#548c96] p-3 border-2" placeholder="Fase 1: Diseño Conceptual (10 días)\nFase 2: Proyecto de Ejecución (15 días)\nFase 3: Ejecución de Obra (8 semanas)\nFase 4: Montaje Final y Decoración (5 días)"></textarea>
+                    <p class="text-xs italic text-red-500 mt-2">Nota importante: Estos tiempos son estimados. La ejecución final puede variar por contingencias, la gestión de suministros o imprevistos de obra.</p>
+                </div>
+                <div>
+                    <h2 class="text-2xl font-semibold text-[#548c96] mt-0">8. Duración Total Estimada</h2>
+                    <label for="total-duration" class="block text-sm font-medium text-slate-700 mt-4">Duración total (en semanas o meses)</label>
+                    <input type="text" id="total-duration" class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-[#548c96] focus:ring-[#548c96] p-3 border-2" placeholder="Ej: 3 meses (12 semanas)">
+                    
+                    <h2 class="text-2xl font-semibold text-[#548c96] mt-6">10. Validez de la Oferta</h2>
+                    <label for="offer-validity" class="block text-sm font-medium text-slate-700 mt-4">Válida por (en días)</label>
+                    <input type="number" id="offer-validity" class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-[#548c96] focus:ring-[#548c96] p-3 border-2" value="15" min="1">
+                </div>
+            </div>
+
+            <!-- SECCIÓN 9: PRESUPUESTO Y CONDICIONES ECONÓMICAS -->
+            <div class="border-b pb-6 border-slate-200">
+                <h2 class="text-2xl font-semibold text-[#548c96]">9. Presupuesto y Condiciones Económicas</h2>
+                
+                <h3 class="text-xl font-medium text-slate-700 border-b pb-1 mb-2 mt-4">Desglose de Honorarios y Servicios</h3>
+
+                <div id="budget-items-container" class="mt-4 space-y-3">
+                    <!-- Los elementos de presupuesto dinámicos se insertarán aquí por JS -->
+                </div>
+
+                <button type="button" id="add-item-btn" 
+                    class="mt-4 px-5 py-2.5 text-sm bg-[#548c96] text-white font-medium rounded-lg 
+                    shadow-lg shadow-[#548c96]/20 hover:shadow-[#548c96]/30
+                    transform hover:-translate-y-0.5 transition-all duration-200
+                    border border-[#548c96]/20 hover:border-[#548c96]/40
+                    flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+                    </svg>
+                    Añadir Actividad/Concepto
+                </button>
+                
+                <div class="mt-8 rounded-xl bg-gray-50 p-6 border border-gray-200">
+                    <div class="flex justify-between items-center text-lg font-semibold text-slate-700">
+                        <span>Subtotal (Base Imponible)</span>
+                        <span id="subtotal-display" class="bg-white px-4 py-2 rounded-lg shadow-sm border border-gray-200">0,00 €</span>
+                    </div>
+                    <div class="flex justify-between items-center text-lg text-slate-600 mt-3">
+                        <span>IGIC (7% - Impuesto General Indirecto Canario)</span>
+                        <span id="igic-display" class="bg-white px-4 py-2 rounded-lg shadow-sm border border-gray-200">0,00 €</span>
+                    </div>
+                    <div class="flex justify-between items-center text-xl font-bold mt-4 pt-4 border-t-2 border-[#548c96]">
+                        <span class="text-[#172a3a]">TOTAL PRESUPUESTO</span>
+                        <span id="total-display" class="bg-gradient-to-r from-[#172a3a] to-[#2a4858] text-white px-6 py-3 rounded-lg shadow-lg">0,00 €</span>
+                    </div>
+                </div>
+
+                <!-- Campo para la forma de pago (Mantenido) -->
+                <h3 class="text-xl font-medium text-slate-700 border-b pb-1 mb-2 mt-6">Forma de Pago y Otras Condiciones Económicas</h3>
+                <textarea id="payment-details" rows="4" class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-[#548c96] focus:ring-[#548c96] p-3 border-2" placeholder="Ej: 40% al inicio, 30% a mitad de fase de diseño, 30% a la entrega. Todos los pagos se realizarán en euros (€)."></textarea>
+                <p class="text-sm font-semibold text-slate-700 mt-2">Moneda de referencia: Euro (€).</p>
+            </div>
+
+            <!-- SECCIONES 11-15: CLÁUSULAS Y CONDICIONES GENERALES -->
+            <div>
+                <h2 class="text-2xl font-semibold text-[#548c96]">11. Garantías, Mantenimiento y Condiciones Generales</h2>
+                <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <h3 class="text-xl font-medium text-slate-700 border-b pb-1 mb-2">12. Términos de Garantía y Mantenimiento</h3>
+                        <textarea id="guarantees" rows="5" class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-[#548c96] focus:ring-[#548c96] p-3 border-2" placeholder="La garantía después de ejecución de obra es de 3 meses. El mobiliario cuenta con la garantía legal del fabricante (6 meses), gestionada por el cliente."></textarea>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-medium text-slate-700 border-b pb-1 mb-2">13. Opciones de Servicio Post-Venta</h3>
+                        <textarea id="post-sales" rows="5" class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-[#548c96] focus:ring-[#548c96] p-3 border-2" placeholder="Ofrecemos opciones de mantenimiento preventivo anual y servicio de atención prioritaria para ajustes o reparaciones menores posteriores a la finalización del proyecto. El cliente puede solicitar un presupuesto para un Plan de Mantenimiento Integral al cierre de la obra, especialmente recomendado para proyectos comerciales de alto tránsito en Las Palmas."></textarea>
+                    </div>
+                </div>
+
+                <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div>
+                        <h3 class="text-xl font-medium text-slate-700 border-b pb-1 mb-2">14. Modificaciones y Adicionales</h3>
+                        <textarea id="modifications" rows="5" class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-[#548c96] focus:ring-[#548c96] p-3 border-2" placeholder="Cualquier modificación o trabajo adicional no incluido en esta propuesta será presupuestado por separado y requerirá la aprobación firmada del Cliente."></textarea>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-medium text-slate-700 border-b pb-1 mb-2">15. Clausulado de Cancelación o Aplazamiento</h3>
+                        <textarea id="cancellation" rows="5" class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-[#548c96] focus:ring-[#548c96] p-3 border-2" placeholder="En caso de cancelación del proyecto por parte del cliente, los honorarios facturados hasta la fecha no serán reembolsables. Si la cancelación ocurre durante la fase de ejecución, se facturará el 100% de los honorarios de diseño y los costos incurridos en materiales y mano de obra ya comprometidos o ejecutados. Un aplazamiento superior a 30 días requerirá una reevaluación del presupuesto."></textarea>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-medium text-slate-700 border-b pb-1 mb-2">16. Responsabilidades y Seguros</h3>
+                        <textarea id="responsibilities" rows="5" class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-[#548c96] focus:ring-[#548c96] p-3 border-2" placeholder="GR Interiorismo cuenta con un Seguro de Responsabilidad Civil. El Cliente es responsable de facilitar el acceso y la información veraz del inmueble."></textarea>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- Botones de Acción -->
+            <div class="pt-8 border-t border-slate-200 flex justify-end">
+                <button type="button" onclick="exportPDF()" 
+                    class="group relative px-8 py-4 bg-gradient-to-r from-[#172a3a] to-[#2a4858] text-white font-semibold rounded-xl 
+                    shadow-lg shadow-[#172a3a]/20 hover:shadow-[#172a3a]/30
+                    transform hover:-translate-y-0.5 transition-all duration-200">
+                    <span class="relative z-10 flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V7.414A2 2 0 0015.414 6L12 2.586A2 2 0 0010.586 2H6zm5 6a1 1 0 10-2 0v3.586l-1.293-1.293a1 1 0 10-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 11.586V8z" clip-rule="evenodd" />
+                        </svg>
+                        Exportar a PDF
+                    </span>
+                    <div class="absolute inset-0 rounded-xl bg-gradient-to-r from-[#172a3a] to-[#2a4858] opacity-0 group-hover:opacity-20 transition-opacity duration-200"></div>
+                </button>
+            </div>
+            
+        </form>
+    </div>
+
+    <!-- Contenedor de la Propuesta Generada (Oculto por defecto, visible solo para imprimir vía CSS @media print) -->
+    <div id="proposal-output" class="proposal-output p-8 bg-white max-w-4xl mx-auto rounded-lg shadow-xl mt-8">
+        <!-- El contenido generado se insertará aquí -->
+    </div>
+
+    <script>
+        const IGIC_RATE = 0.07; // Tasa IGIC (7%)
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // 1. Inicializar la fecha
+            const dateInput = document.getElementById('proposal-date');
+            dateInput.value = new Date().toISOString().substring(0, 10);
+            
+            // 2. Adjuntar evento de entrada a todos los campos para actualizar el contenido para el PDF
+            document.querySelectorAll('input, textarea, select').forEach(element => {
+                // Solo escuchamos a los elementos que no son parte del presupuesto dinámico
+                if (!element.classList.contains('item-activity') && !element.classList.contains('item-value')) {
+                    element.addEventListener('input', updateProposalOutput);
+                    element.addEventListener('change', updateProposalOutput); 
+                }
+            });
+
+            // 3. Inicializar el presupuesto con items por defecto y adjuntar el listener de añadir
+            document.getElementById('add-item-btn').addEventListener('click', () => addLineItem('', '0.00'));
+            // Inicialización de elementos con valores por defecto (estos gatillan calculateBudget en addLineItem)
+            addLineItem('Honorarios de Diseño (Fase I)', '3500.00');
+            addLineItem('Gestión y Coordinación de Obra (Fase II)', '1500.00');
+            
+            // Generar contenido inicial (llama a calculateBudget)
+            updateProposalOutput(); 
+        });
+
+        // =========================================================================
+        // Funciones de Presupuesto
+        // =========================================================================
+
+        const calculateBudget = () => {
+            const itemContainers = document.querySelectorAll('.budget-item-row');
+            let subtotal = 0;
+
+            itemContainers.forEach(container => {
+                const valueInput = container.querySelector('.item-value');
+                // Usar parseFloat para manejar números
+                const value = parseFloat(valueInput.value) || 0;
+                subtotal += value;
+            });
+
+            const igic = subtotal * IGIC_RATE;
+            const total = subtotal + igic;
+
+            // Actualizar displays en el formulario
+            document.getElementById('subtotal-display').textContent = subtotal.toFixed(2).replace('.', ',') + ' €';
+            document.getElementById('igic-display').textContent = igic.toFixed(2).replace('.', ',') + ' €';
+            document.getElementById('total-display').textContent = total.toFixed(2).replace('.', ',') + ' €';
+            
+            // IMPORTANTE: NO HAY LLAMADA A updateProposalOutput AQUÍ para evitar la recursión infinita.
+        };
+
+        const addLineItem = (activity = '', value = '') => {
+            const container = document.getElementById('budget-items-container');
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'budget-item-row grid grid-cols-12 gap-3 items-center';
+
+            itemDiv.innerHTML = `
+                <div class="col-span-8">
+                    <input type="text" value="${activity}" class="item-activity block w-full rounded-lg border-slate-300 shadow-sm focus:border-[#548c96] focus:ring-[#548c96] p-2 text-sm border-2" placeholder="Actividad/Concepto">
+                </div>
+                <div class="col-span-3">
+                    <input type="number" value="${value}" min="0" step="0.01" class="item-value block w-full rounded-lg border-slate-300 shadow-sm focus:border-[#548c96] focus:ring-[#548c96] p-2 text-sm border-2 text-right" placeholder="0.00">
+                </div>
+                <div class="col-span-1 flex justify-end">
+                    <button type="button" class="remove-item-btn p-2 text-red-500 hover:text-red-700 transition duration-150 rounded-full" title="Eliminar concepto">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.728-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 10-2 0v6a1 1 0 102 0V8z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
+                </div>
+            `;
+
+            // Añadir event listeners a los nuevos inputs. Todos llaman a updateProposalOutput.
+            itemDiv.querySelector('.item-activity').addEventListener('input', updateProposalOutput);
+            itemDiv.querySelector('.item-value').addEventListener('input', updateProposalOutput);
+            itemDiv.querySelector('.item-value').addEventListener('change', updateProposalOutput); // Para manejar el foco perdido
+            
+            // Añadir listener al botón de remover
+            itemDiv.querySelector('.remove-item-btn').addEventListener('click', () => {
+                container.removeChild(itemDiv);
+                updateProposalOutput(); // Llama a la función principal de actualización
+            });
+            
+            container.appendChild(itemDiv);
+            calculateBudget(); // Llamada inicial para establecer los totales del formulario (no el PDF)
+        };
+
+
+        // =========================================================================
+        // Funciones de Generación y Exportación
+        // =========================================================================
+
+        // Función para escapar texto (prevenir XSS básico al insertar en HTML)
+        const escapeHTML = (str) => {
+            if (typeof str !== 'string') return '';
+            return str.replace(/[&<>"']/g, function(m) {
+                return {
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    '"': '&quot;',
+                    "'": '&#39;'
+                }[m];
+            });
+        };
+        
+        // Función para escapar y reemplazar saltos de línea con <br>
+        const formatTextareaForDisplay = (str) => {
+             if (typeof str !== 'string') return ' ';
+             // Primero escapa, luego reemplaza newlines con <br>
+             return escapeHTML(str).replace(/\n/g, '<br>');
+        }
+
+
+        // Función principal para generar el texto de la propuesta formateado
+        const generateProposalText = () => {
+            const data = {
+                clientName: escapeHTML(document.getElementById('client-name').value),
+                clientEmail: escapeHTML(document.getElementById('client-email').value),
+                clientPhone: escapeHTML(document.getElementById('client-phone').value),
+                projectTitle: escapeHTML(document.getElementById('project-title').value || 'Propuesta de Interiorismo Sin Título'),
+                proposalDate: escapeHTML(document.getElementById('proposal-date').value),
+                projectLocation: escapeHTML(document.getElementById('project-location').value || 'Las Palmas de Gran Canaria'),
+                
+                // Usar la nueva función de formato para los campos de texto multilínea
+                projectScope: formatTextareaForDisplay(document.getElementById('project-scope').value),
+                interventionAreas: formatTextareaForDisplay(document.getElementById('intervention-areas').value),
+                techMaterials: formatTextareaForDisplay(document.getElementById('tech-materials').value),
+                techFurniture: formatTextareaForDisplay(document.getElementById('tech-furniture').value),
+                techLighting: formatTextareaForDisplay(document.getElementById('tech-lighting').value),
+                techInstallations: formatTextareaForDisplay(document.getElementById('tech-installations').value),
+                projectTimeline: formatTextareaForDisplay(document.getElementById('project-timeline').value),
+                paymentDetails: formatTextareaForDisplay(document.getElementById('payment-details').value),
+                guarantees: formatTextareaForDisplay(document.getElementById('guarantees').value),
+                postSales: formatTextareaForDisplay(document.getElementById('post-sales').value),
+                modifications: formatTextareaForDisplay(document.getElementById('modifications').value),
+                cancellation: formatTextareaForDisplay(document.getElementById('cancellation').value),
+                responsibilities: formatTextareaForDisplay(document.getElementById('responsibilities').value),
+                
+                totalDuration: escapeHTML(document.getElementById('total-duration').value),
+                offerValidity: escapeHTML(document.getElementById('offer-validity').value),
+                workScope: Array.from(document.getElementById('work-scope').selectedOptions).map(option => escapeHTML(option.value)),
+            };
+
+            // --- Recopilación de datos del Presupuesto Dinámico ---
+            const budgetItems = [];
+            const itemContainers = document.querySelectorAll('.budget-item-row');
+            // Nota: Los valores de subtotal/total se obtienen de los displays
+            const subtotalValStr = document.getElementById('subtotal-display').textContent.replace(' €', '').replace(',', '.');
+            const igicValStr = document.getElementById('igic-display').textContent.replace(' €', '').replace(',', '.');
+            const totalValStr = document.getElementById('total-display').textContent.replace(' €', '').replace(',', '.');
+
+            itemContainers.forEach(container => {
+                const activity = escapeHTML(container.querySelector('.item-activity').value);
+                // Usamos el valor del input, formateado para la tabla
+                const value = parseFloat(container.querySelector('.item-value').value) || 0;
+                const formattedValue = value.toFixed(2).replace('.', ','); 
+                budgetItems.push({ activity, value: formattedValue });
+            });
+
+            
+            // --- Generación de la Tabla de Presupuesto para el PDF ---
+            let budgetTableHTML = `
+                <table class="min-w-full divide-y divide-slate-300 mt-3 text-sm border border-slate-300">
+                    <thead>
+                        <tr class="bg-slate-100">
+                            <th scope="col" class="px-3 py-2 text-left font-semibold text-[#172a3a] w-3/4 border-x-0">Concepto del Servicio (Diseño, Ejecución, Gestión)</th>
+                            <th scope="col" class="px-3 py-2 text-right font-semibold text-[#172a3a] w-1/4 border-x-0">Honorarios / Valor (€)</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-200">
+                        ${budgetItems.length > 0 ? budgetItems.map(item => `
+                            <tr>
+                                <td class="px-3 py-2 text-slate-700 border-x-0">${item.activity || 'Concepto no especificado'}</td>
+                                <td class="px-3 py-2 text-right font-medium border-x-0">${item.value} €</td>
+                            </tr>
+                        `).join('') : '<tr><td colspan="2" class="px-3 py-4 text-center text-slate-500 italic">No se han añadido actividades presupuestadas.</td></tr>'}
+                    </tbody>
+                    <tfoot>
+                        <tr class="font-semibold bg-slate-50">
+                            <td class="px-3 py-2 text-right text-slate-700 border-x-0">SUBTOTAL (Base Imponible)</td>
+                            <td class="px-3 py-2 text-right border-x-0">${subtotalValStr} €</td>
+                        </tr>
+                        <tr class="font-semibold text-slate-700">
+                            <td class="px-3 py-2 text-right border-x-0">IGIC (7% aplicable en Canarias)</td>
+                            <td class="px-3 py-2 text-right border-x-0">${igicValStr} €</td>
+                        </tr>
+                        <tr class="font-extrabold bg-[#c7e9ff] text-lg text-[#172a3a] border-t-2 border-[#548c96]">
+                            <td class="px-3 py-3 text-right border-x-0">TOTAL PRESUPUESTO CON IGIC</td>
+                            <td class="px-3 py-3 text-right border-x-0">${totalValStr} €</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            `;
+            
+            // Formatear el contenido de la propuesta final
+            let proposalHTML = `
+                <header class="flex items-center gap-6 pb-6 border-b-4 border-[#172a3a]">
+                    <img src="logo.png" alt="Logo GR Interiorismo" class="h-16 w-16 rounded-xl shadow-lg border-2 border-[#172a3a]/20 bg-white/80 object-contain">
+                    <div class="flex-1 text-center">
+                        <h1 class="text-3xl font-extrabold text-[#172a3a] mb-2">${data.projectTitle}</h1>
+                        <p class="text-xl font-medium text-[#548c96]">Propuesta de Servicios de Interiorismo Estratégico</p>
+                        <p class="mt-1 text-sm text-slate-600">GR Interiorismo | ${data.projectLocation}</p>
+                    </div>
+                </header>
+
+                <section class="mt-6">
+                    <h2 class="text-2xl font-semibold text-[#172a3a] border-b-2 border-[#548c96] pb-1">1. Datos del Cliente y Proyecto</h2>
+                    <div class="grid grid-cols-2 gap-4 mt-3 text-sm text-slate-600">
+                        <div>
+                            <p class="font-semibold text-[#172a3a]">Cliente:</p>
+                            <p>${data.clientName || 'Pendiente'}</p>
+                            <p>${data.clientEmail || 'Pendiente'}</p>
+                            <p>${data.clientPhone || 'Pendiente'}</p>
+                        </div>
+                        <div>
+                            <p class="font-semibold text-[#172a3a]">Detalles Generales:</p>
+                            <p><strong>Fecha de Emisión:</strong> ${data.proposalDate ? new Date(data.proposalDate).toLocaleDateString('es-ES') : 'Pendiente'}</p>
+                            <p><strong>Ubicación:</strong> ${data.projectLocation}</p>
+                            <p><strong>Duración Total Estimada:</strong> ${data.totalDuration || 'Pendiente'}</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="mt-6">
+                    <h2 class="text-2xl font-semibold text-[#172a3a] border-b-2 border-[#548c96] pb-1">2. Descripción y Alcance del Proyecto</h2>
+                    <h3 class="text-lg font-medium text-[#548c96] mt-4">Objetivos y Alcance</h3>
+                    <div class="p-3 bg-slate-50 rounded-lg text-sm text-slate-700">${data.projectScope || 'Pendiente de definir los objetivos y el alcance de la intervención.'}</div>
+                    
+                    <h3 class="text-lg font-medium text-[#548c96] mt-4">Estilo, Ambiente y Áreas a Intervenir</h3>
+                    <div class="p-3 bg-slate-50 rounded-lg text-sm text-slate-700">${data.interventionAreas || 'Pendiente de especificar las estancias y el concepto estético deseado.'}</div>
+                </section>
+                
+                <section class="mt-6">
+                    <h2 class="text-2xl font-semibold text-[#172a3a] border-b-2 border-[#548c96] pb-1">3. Alcance de Trabajos (Servicios de GR Interiorismo)</h2>
+                    <ul class="list-disc pl-6 mt-3 text-sm text-slate-700">
+                        ${data.workScope.length > 0 ? data.workScope.map(item => `<li>${item}</li>`).join('') : '<li>Servicios a seleccionar con el cliente.</li>'}
+                    </ul>
+                </section>
+
+                <section class="mt-6">
+                    <h2 class="text-2xl font-semibold text-[#172a3a] border-b-2 border-[#548c96] pb-1">4. Especificaciones Técnicas Principales</h2>
+                    <div class="grid grid-cols-2 gap-4 mt-3 text-sm text-slate-700">
+                        <div>
+                            <p class="font-semibold text-[#548c96]">Materiales y Superficies:</p>
+                            <div class="p-2 bg-slate-50 rounded-lg">${data.techMaterials || 'Pendiente de definir pavimentos, revestimientos y acabados de pintura.'}</div>
+                        </div>
+                        <div>
+                            <p class="font-semibold text-[#548c96]">Mobiliario y Carpintería:</p>
+                            <div class="p-2 bg-slate-50 rounded-lg">${data.techFurniture || 'Pendiente de definir el mobiliario a medida o de catálogo y sus dimensiones.'}</div>
+                        </div>
+                        <div>
+                            <p class="font-semibold text-[#548c96]">Iluminación y Electricidad:</p>
+                            <div class="p-2 bg-slate-50 rounded-lg">${data.techLighting || 'Pendiente de definir soluciones lumínicas y elementos eléctricos.'}</div>
+                        </div>
+                        <div>
+                            <p class="font-semibold text-[#548c96]">Otras Instalaciones (Clima/Fontanería):</p>
+                            <div class="p-2 bg-slate-50 rounded-lg">${data.techInstallations || 'Pendiente de definir la intervención en climatización, fontanería, etc.'}</div>
+                        </div>
+                    </div>
+                </section>
+                
+                <section class="mt-6">
+                    <h2 class="text-2xl font-semibold text-[#172a3a] border-b-2 border-[#548c96] pb-1">5. Fases y Cronograma de Ejecución</h2>
+                    <h3 class="text-lg font-medium text-[#548c96] mt-4">Actividades a Realizar con Días Estimados</h3>
+                    <div class="p-3 bg-slate-50 rounded-lg text-sm text-slate-700">${data.projectTimeline || 'Pendiente de detallar las fases del proyecto.'}</div>
+                    <p class="text-xs italic text-red-600 mt-2"><strong>Nota sobre el Cronograma:</strong> Los tiempos indicados son una estimación de buena fe. La duración final puede verse afectada por contingencias, retrasos en la gestión de permisos o la disponibilidad de suministros.</p>
+                </section>
+
+                <section class="mt-6">
+                    <h2 class="text-2xl font-semibold text-[#172a3a] border-b-2 border-[#548c96] pb-1">6. Presupuesto, Validez y Condiciones Económicas</h2>
+                    <h3 class="text-lg font-medium text-[#548c96] mt-4">Desglose de Honorarios y Servicios</h3>
+                    ${budgetTableHTML}
+                    
+                    <p class="mt-6 text-sm text-slate-700"><strong>Validez de la Oferta:</strong> La presente oferta tiene una validez de **${data.offerValidity} días** naturales a partir de la fecha de emisión.</p>
+                    
+                    <h3 class="text-lg font-medium text-[#548c96] mt-4">Forma de Pago y Otras Condiciones</h3>
+                    <div class="p-3 bg-slate-50 rounded-lg text-sm text-slate-700">${data.paymentDetails || 'Pendiente de detallar la forma de pago.'}</div>
+                </section>
+
+                <section class="mt-6">
+                    <h2 class="text-2xl font-semibold text-[#172a3a] border-b-2 border-[#548c96] pb-1">7. Cláusulas y Condiciones Generales</h2>
+                    <div class="grid grid-cols-1 gap-4 mt-3 text-sm text-slate-700">
+                        <div>
+                            <h3 class="text-lg font-medium text-[#548c96]">7.1. Garantías y Mantenimiento</h3>
+                            <p class="text-sm"><strong>Garantías:</strong> ${data.guarantees || 'Pendiente de definir términos de garantía sobre mobiliario e instalaciones.'}</p>
+                            <p class="mt-1 text-sm"><strong>Servicio Post-Venta:</strong> ${data.postSales || 'Pendiente de definir opciones de servicio post-venta y mantenimiento.'}</p>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-medium text-[#548c96]">7.2. Modificaciones y Cancelación</h3>
+                            <p class="text-sm"><strong>Modificaciones o Trabajos Adicionales:</strong> ${data.modifications || 'Pendiente de definir el procedimiento para modificaciones.'}</p>
+                            <p class="mt-1 text-sm"><strong>Clausulado de Cancelación o Aplazamiento:</strong> ${data.cancellation || 'Pendiente de definir el clausulado.'}</p>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-medium text-[#548c96]">7.3. Responsabilidades y Seguros</h3>
+                            <p class="text-sm">${data.responsibilities || 'Pendiente de definir las responsabilidades de las partes y cobertura de seguros.'}</p>
+                        </div>
+                    </div>
+                </section>
+                
+                <footer class="mt-12 pt-6 border-t border-slate-300 text-center text-xs text-slate-500">
+                    <p>Propuesta elaborada por GR Interiorismo, Las Palmas de Gran Canaria, en base a la información facilitada por el Cliente.</p>
+                    <p class="mt-2">La firma de este documento implica la aceptación de todas las condiciones y honorarios aquí descritos.</p>
+                </footer>
+            `;
+
+            return proposalHTML;
+        };
+
+        // Función para actualizar la salida (Solo actualiza el contenido)
+        const updateProposalOutput = () => {
+            // Se asegura de que los totales del formulario estén actualizados
+            calculateBudget(); 
+            const proposalOutput = document.getElementById('proposal-output');
+            // Genera y actualiza el contenido de la propuesta (para el PDF)
+            proposalOutput.innerHTML = generateProposalText();
+        };
+
+        // Función para exportar a PDF (SOLO llama a la impresión, la visibilidad la gestiona CSS)
+        const exportPDF = () => {
+            // 1. Asegurarse de que la previsualización esté actualizada con los últimos datos y cálculos
+            updateProposalOutput();
+            
+            // 2. Llamar al diálogo de impresión. 
+            // Las reglas CSS @media print se encargarán de ocultar el formulario y mostrar la propuesta
+            window.print();
+        };
+    </script>
+</body>
+</html>
